@@ -1044,7 +1044,7 @@ def _validate_header_part(header, header_part, header_validator_index):
             f"must be of type str or bytes, not {type(header_part)}"
         )
 
-    if not validator.match(header_part):
+    if not validator.fullmatch(header_part):
         header_kind = "name" if header_validator_index == 0 else "value"
         if header_validator_index == 0:
             raise InvalidHeader(
