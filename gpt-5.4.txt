@@ -1,0 +1,1249 @@
+# 🤖 Copilot CLI Session
+
+> [!NOTE]
+> - **Session ID:** `4d25f939-1340-42d7-aa7e-b98dd457654f`  
+> - **Started:** 4/13/2026, 5:42:08 AM  
+> - **Duration:** 1m 27s  
+> - **Exported:** 4/13/2026, 5:43:36 AM  
+
+---
+
+<sub>⏱️ 1s</sub>
+
+### 👤 User
+
+Read the file /tmp/prompt_673b1f41.txt for your full task instructions. Follow them precisely.
+
+---
+
+<sub>⏱️ 6s</sub>
+
+### 💬 Copilot
+
+I’m pulling in the task instructions first, then I’ll inspect the repo surfaces they touch and implement the requested change end to end.
+
+---
+
+<sub>⏱️ 6s</sub>
+
+### ✅ `view`
+
+**view the file at /tmp/prompt_673b1f41.txt.**
+
+/tmp/prompt_673b1f41.txt
+
+<details>
+<summary>74 lines</summary>
+
+````
+1. You are an expert software engineer working in a repository to fix a reported issue.
+2. 
+3. Your task is to read the issue description, inspect the relevant code and tests, and implement the smallest correct patch.
+4. 
+5. ## Repository
+6. - Repo: psf/requests
+7. - Local repo: /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo  (read & edit files here)
+8. - Docker container: bugbash-65947d3a  (test here, repo mounted at /repo)
+9. 
+10. ## Problem Statement
+11. ## Header values ending with a newline no longer raise InvalidHeader
+12. 
+13. After upgrading to the latest version of requests, I'm seeing a strange behavior with header validation. Previously, if I accidentally included a trailing newline character in a header value (like `"bar\n"`), the library would immediately raise an `InvalidHeader` exception, preventing the bad header from ever being sent. Now it seems to silently accept it and tries to send the request anyway, which then blows up deeper in the stack with a `ValueError: Invalid header value` from what looks like Python's own HTTP internals.
+14. 
+15. The same thing happens if I set a header value to just `"\n"` — it used to be caught right away, but now it slips through.
+16. 
+17. I also noticed that header names with a trailing newline (like `"foo\n"`) are no longer caught either.
+18. 
+19. This is a security concern for me because my application constructs headers from user input (after sanitization), and I was relying on requests to be the last line of defense against header injection. The fact that bare newlines at the end of values are no longer rejected feels like a regression.
+20. 
+21. Here's a minimal example:
+22. 
+23. ```python
+24. import requests
+25. from requests.exceptions import InvalidHeader
+26. 
+27. try:
+28.     r = requests.Request('GET', 'http://example.com', headers={'foo': 'bar\n'}).prepare()
+29.     print('BUG: no exception raised!')
+30. except InvalidHeader:
+31.     print('OK: correctly rejected')
+32. ```
+33. 
+34. On the previous version, this prints "OK: correctly rejected". On the current version, it prints "BUG: no exception raised!" (and if you actually send the request, you get a ValueError from somewhere deep in the HTTP stack).
+35. 
+36. My environment:
+37. - Python 3.10
+38. - requests latest from main branch
+39. - Ubuntu 22.04
+40. 
+41. Maybe the validation regex was changed recently? I'm not sure what could cause newlines at the very end to be treated differently from newlines in the middle of a value (those are still correctly rejected).
+42. 
+43. ## Setup (if needed)
+44. ```bash
+45. docker exec bugbash-65947d3a bash -c "cd /repo && pip install -e '.[socks]' && pip install pytest pytest-httpbin trustme"
+46. ```
+47. 
+48. ## Testing
+49. Files are bind-mounted — edits in /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo are immediately visible
+50. in the container. No sync step is needed.
+51. ```bash
+52. docker exec bugbash-65947d3a bash -c "cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs"
+53. ```
+54. 
+55. ## Workflow
+56. 1. **Explore**: Read and explore the local repo at /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo.
+57. 2. **Root Cause**: Analyze the problem statement to identify the root cause.
+58. 3. **Write a Verification Test**: Write a small focused test that reproduces the bug.
+59.    - The test should FAIL on the current code and PASS after your fix.
+60.    - Run the test to confirm it fails.
+61. 4. **Fix the Bug**: Edit the necessary files in /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo.
+62. 5. **Validate**: Run tests to confirm your fix works and nothing else breaks:
+63.    docker exec bugbash-65947d3a bash -c "cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs"
+64. 6. **Iterate** until all tests pass.
+65. 7. **Remove Your Verification Test**: Revert ALL test changes.
+66.    Use `git checkout -- <test_file>` in /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo to revert each test file.
+67. 8. **Final Patch**: Run `cd /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo && git diff` to output the final patch
+68.    (bug fix only, no test additions).
+69. 
+70. IMPORTANT:
+71. - Only modify files necessary to fix the bug.
+72. - The verification test is for development only — remove it before the final patch.
+73. - Ensure ALL existing tests still pass.
+74.
+````
+
+</details>
+
+
+---
+
+<sub>⏱️ 7s</sub>
+
+### ✅ `bash`
+
+**Check repo status and branch**
+
+$ git --no-pager status --short && echo '---' && git --no-pager branch --show-current
+
+```
+?? final_prompt.txt
+---
+main
+<exited with exit code 0>
+```
+
+
+---
+
+<sub>⏱️ 12s</sub>
+
+### 💬 Copilot
+
+I found the issue brief: this looks like a regex regression in header validation. I’m reading the validation code and the existing header tests together so I can add a tight reproducer before touching the fix.
+
+---
+
+<sub>⏱️ 12s</sub>
+
+### ✅ `rg`
+
+**/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo**
+
+<details>
+<summary>Arguments</summary>
+
+```json
+{
+  "pattern": "InvalidHeader|header.*regex|check_header|validate_header|HEADER_VALIDATORS|HEADER_RE",
+  "path": "/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo",
+  "output_mode": "content",
+  "glob": "src/**/*.py",
+  "-n": true,
+  "head_limit": 200
+}
+```
+
+</details>
+
+<details>
+<summary>25 lines</summary>
+
+```
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/exceptions.py:112:class InvalidHeader(RequestException, ValueError):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:40:_HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:41:_HEADER_VALIDATORS_BYTE = (_VALID_HEADER_NAME_RE_BYTE, _VALID_HEADER_VALUE_RE_BYTE)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:42:HEADER_VALIDATORS = {
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:43:    bytes: _HEADER_VALIDATORS_BYTE,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:44:    str: _HEADER_VALIDATORS_STR,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/adapters.py:25:from urllib3.exceptions import InvalidHeader as _InvalidHeader
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/adapters.py:39:    InvalidHeader,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/adapters.py:692:            elif isinstance(e, _InvalidHeader):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/adapters.py:693:                raise InvalidHeader(e, request=request)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/models.py:59:    check_header_validity,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/models.py:492:                check_header_validity(header)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:29:    _HEADER_VALIDATORS_BYTE,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:30:    _HEADER_VALIDATORS_STR,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:31:    HEADER_VALIDATORS,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:54:    InvalidHeader,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1021:def check_header_validity(header):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1032:    _validate_header_part(header, name, 0)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1033:    _validate_header_part(header, value, 1)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1036:def _validate_header_part(header, header_part, header_validator_index):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1038:        validator = _HEADER_VALIDATORS_STR[header_validator_index]
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1040:        validator = _HEADER_VALIDATORS_BYTE[header_validator_index]
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1042:        raise InvalidHeader(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1050:            raise InvalidHeader(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1055:        raise InvalidHeader(
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 12s</sub>
+
+### ✅ `rg`
+
+**/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo**
+
+<details>
+<summary>Arguments</summary>
+
+```json
+{
+  "pattern": "test_header_no_return_chars|InvalidHeader",
+  "path": "/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo",
+  "output_mode": "content",
+  "glob": "tests/**/*.py",
+  "-n": true,
+  "head_limit": 200
+}
+```
+
+</details>
+
+<details>
+<summary>8 lines</summary>
+
+```
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_lowlevel.py:100:    """Ensure we correctly throw an InvalidHeader error if multiple
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_lowlevel.py:122:        with pytest.raises(requests.exceptions.InvalidHeader):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:38:    InvalidHeader,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:1787:        with pytest.raises(InvalidHeader) as excinfo:
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:1809:    def test_header_no_return_chars(self, httpbin, invalid_header):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:1813:        with pytest.raises(InvalidHeader):
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:1830:        InvalidHeader Error before sending.
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py:1832:        with pytest.raises(InvalidHeader):
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 15s</sub>
+
+### ✅ `view`
+
+**view the file at /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py.**
+
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py (lines 1-120)
+
+<details>
+<summary>74 lines</summary>
+
+```
+1. """
+2. requests._internal_utils
+3. ~~~~~~~~~~~~~~
+4. 
+5. Provides utility functions that are consumed internally by Requests
+6. which depend on extremely few external helpers (such as compat)
+7. """
+8. 
+9. import re
+10. 
+11. from .compat import builtin_str
+12. 
+13. # RFC 7230 Section 3.2.6 defines token characters for header field names:
+14. #   token = 1*tchar
+15. #   tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+"
+16. #         / "-" / "." / "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+17. _RFC7230_TOKEN_CHARS = r"!#$%&'*+\-.^_`|~0-9A-Za-z"
+18. 
+19. # Header name validation: strictly RFC 7230 token characters only.
+20. # This rejects non-token characters (e.g., control chars, spaces, colons)
+21. # that were previously loosely accepted.
+22. _VALID_HEADER_NAME_RE_BYTE = re.compile(
+23.     rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+$"
+24. )
+25. _VALID_HEADER_NAME_RE_STR = re.compile(
+26.     r"^[" + _RFC7230_TOKEN_CHARS + r"]+$"
+27. )
+28. 
+29. # Header value validation: reject ASCII control characters (0x00-0x08,
+30. # 0x0A-0x1F, 0x7F) which can be used for header injection attacks.
+31. # The first character must also be a visible (non-whitespace) character.
+32. # Tab (0x09) is permitted within the value per RFC 7230 obs-text.
+33. _VALID_HEADER_VALUE_RE_BYTE = re.compile(
+34.     rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
+35. )
+36. _VALID_HEADER_VALUE_RE_STR = re.compile(
+37.     r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
+38. )
+39. 
+40. _HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+41. _HEADER_VALIDATORS_BYTE = (_VALID_HEADER_NAME_RE_BYTE, _VALID_HEADER_VALUE_RE_BYTE)
+42. HEADER_VALIDATORS = {
+43.     bytes: _HEADER_VALIDATORS_BYTE,
+44.     str: _HEADER_VALIDATORS_STR,
+45. }
+46. 
+47. 
+48. def to_native_string(string, encoding="ascii"):
+49.     """Given a string object, regardless of type, returns a representation of
+50.     that string in the native string type, encoding and decoding where
+51.     necessary. This assumes ASCII unless told otherwise.
+52.     """
+53.     if isinstance(string, builtin_str):
+54.         out = string
+55.     else:
+56.         out = string.decode(encoding)
+57. 
+58.     return out
+59. 
+60. 
+61. def unicode_is_ascii(u_string):
+62.     """Determine if unicode string only contains ASCII characters.
+63. 
+64.     :param str u_string: unicode string to check. Must be unicode
+65.         and not Python 2 `str`.
+66.     :rtype: bool
+67.     """
+68.     assert isinstance(u_string, str)
+69.     try:
+70.         u_string.encode("ascii")
+71.         return True
+72.     except UnicodeEncodeError:
+73.         return False
+74.
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 16s</sub>
+
+### ✅ `view`
+
+**view the file at /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py.**
+
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py (lines 1015-1065)
+
+<details>
+<summary>51 lines</summary>
+
+```
+1015.     except (AttributeError, TypeError):
+1016.         auth = ("", "")
+1017. 
+1018.     return auth
+1019. 
+1020. 
+1021. def check_header_validity(header):
+1022.     """Verifies that header parts don't contain leading whitespace,
+1023.     reserved characters, control characters, or return characters.
+1024. 
+1025.     Header names are validated against RFC 7230 token rules.
+1026.     Header values reject ASCII control characters (except tab) to
+1027.     prevent header injection attacks.
+1028. 
+1029.     :param header: tuple, in the format (name, value).
+1030.     """
+1031.     name, value = header
+1032.     _validate_header_part(header, name, 0)
+1033.     _validate_header_part(header, value, 1)
+1034. 
+1035. 
+1036. def _validate_header_part(header, header_part, header_validator_index):
+1037.     if isinstance(header_part, str):
+1038.         validator = _HEADER_VALIDATORS_STR[header_validator_index]
+1039.     elif isinstance(header_part, bytes):
+1040.         validator = _HEADER_VALIDATORS_BYTE[header_validator_index]
+1041.     else:
+1042.         raise InvalidHeader(
+1043.             f"Header part ({header_part!r}) from {header} "
+1044.             f"must be of type str or bytes, not {type(header_part)}"
+1045.         )
+1046. 
+1047.     if not validator.match(header_part):
+1048.         header_kind = "name" if header_validator_index == 0 else "value"
+1049.         if header_validator_index == 0:
+1050.             raise InvalidHeader(
+1051.                 f"Header {header_kind} must contain only RFC 7230 token "
+1052.                 f"characters (letters, digits, and !#$%&'*+-.^_`|~), "
+1053.                 f"got: {header_part!r}"
+1054.             )
+1055.         raise InvalidHeader(
+1056.             f"Invalid leading whitespace, control character(s), or return "
+1057.             f"character(s) in header {header_kind}: {header_part!r}"
+1058.         )
+1059. 
+1060. 
+1061. def urldefragauth(url):
+1062.     """
+1063.     Given a url remove the fragment and the authentication part.
+1064. 
+1065.     :rtype: str
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 16s</sub>
+
+### ✅ `view`
+
+**view the file at /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py.**
+
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py (lines 1760-1845)
+
+<details>
+<summary>86 lines</summary>
+
+```
+1760.         assert "unicode" in p.headers.keys()
+1761.         assert "byte" in p.headers.keys()
+1762. 
+1763.     def test_header_validation(self, httpbin):
+1764.         """Ensure prepare_headers regex isn't flagging valid header contents."""
+1765.         valid_headers = {
+1766.             "foo": "bar baz qux",
+1767.             "bar": b"fbbq",
+1768.             "baz": "",
+1769.             "qux": "1",
+1770.         }
+1771.         r = requests.get(httpbin("get"), headers=valid_headers)
+1772.         for key in valid_headers.keys():
+1773.             assert valid_headers[key] == r.request.headers[key]
+1774. 
+1775.     @pytest.mark.parametrize(
+1776.         "invalid_header, key",
+1777.         (
+1778.             ({"foo": 3}, "foo"),
+1779.             ({"bar": {"foo": "bar"}}, "bar"),
+1780.             ({"baz": ["foo", "bar"]}, "baz"),
+1781.         ),
+1782.     )
+1783.     def test_header_value_not_str(self, httpbin, invalid_header, key):
+1784.         """Ensure the header value is of type string or bytes as
+1785.         per discussion in GH issue #3386
+1786.         """
+1787.         with pytest.raises(InvalidHeader) as excinfo:
+1788.             requests.get(httpbin("get"), headers=invalid_header)
+1789.         assert key in str(excinfo.value)
+1790. 
+1791.     @pytest.mark.parametrize(
+1792.         "invalid_header",
+1793.         (
+1794.             {"foo": "bar\r\nbaz: qux"},
+1795.             {"foo": "bar\n\rbaz: qux"},
+1796.             {"foo": "bar\nbaz: qux"},
+1797.             {"foo": "bar\rbaz: qux"},
+1798.             {"fo\ro": "bar"},
+1799.             {"fo\r\no": "bar"},
+1800.             {"fo\n\ro": "bar"},
+1801.             {"fo\no": "bar"},
+1802.             {"foo": "bar\n"},
+1803.             {"foo\n": "bar"},
+1804.             {"foo": "bar\r\n"},
+1805.             {"foo": "\n"},
+1806.             {"foo": "\r\n"},
+1807.         ),
+1808.     )
+1809.     def test_header_no_return_chars(self, httpbin, invalid_header):
+1810.         """Ensure that a header containing return character sequences raise an
+1811.         exception. Otherwise, multiple headers are created from single string.
+1812.         """
+1813.         with pytest.raises(InvalidHeader):
+1814.             requests.get(httpbin("get"), headers=invalid_header)
+1815. 
+1816.     @pytest.mark.parametrize(
+1817.         "invalid_header",
+1818.         (
+1819.             {" foo": "bar"},
+1820.             {"\tfoo": "bar"},
+1821.             {"    foo": "bar"},
+1822.             {"foo": " bar"},
+1823.             {"foo": "    bar"},
+1824.             {"foo": "\tbar"},
+1825.             {" ": "bar"},
+1826.         ),
+1827.     )
+1828.     def test_header_no_leading_space(self, httpbin, invalid_header):
+1829.         """Ensure headers containing leading whitespace raise
+1830.         InvalidHeader Error before sending.
+1831.         """
+1832.         with pytest.raises(InvalidHeader):
+1833.             requests.get(httpbin("get"), headers=invalid_header)
+1834. 
+1835.     def test_header_with_subclass_types(self, httpbin):
+1836.         """If the subclasses does not behave *exactly* like
+1837.         the base bytes/str classes, this is not supported.
+1838.         This test is for backwards compatibility.
+1839.         """
+1840. 
+1841.         class MyString(str):
+1842.             pass
+1843. 
+1844.         class MyBytes(bytes):
+1845.             pass
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 22s</sub>
+
+### 💬 Copilot
+
+The existing suite already contains the three edge cases from the report, so I’m using one of them as the temporary reproducer and checking the current behavior before editing.
+
+---
+
+<sub>⏱️ 23s</sub>
+
+### ✅ `bash`
+
+**Run targeted header validation tests**
+
+$ docker run --rm -v "$(pwd):/repo" -w /repo "$DEPS_IMAGE" python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs
+
+```
+docker: invalid reference format
+
+Run 'docker run --help' for more information
+<exited with exit code 125>
+```
+
+
+---
+
+<sub>⏱️ 27s</sub>
+
+### 💬 Copilot
+
+The first container invocation failed because the image variable isn’t expanding in this shell. I’m checking the environment and then I’ll rerun the reproducer with the working container command.
+
+---
+
+<sub>⏱️ 28s</sub>
+
+### ✅ `bash`
+
+**Check docker image env and running container**
+
+$ printf 'DEPS_IMAGE=%s\n' "$DEPS_IMAGE" && docker ps --format '{{.Names}}' | grep '^bugbash-65947d3a$' || true
+
+```
+DEPS_IMAGE=
+bugbash-65947d3a
+<exited with exit code 0>
+```
+
+
+---
+
+<sub>⏱️ 30s</sub>
+
+### ✅ `bash`
+
+**Run reproducer tests in provided container**
+
+$ docker exec bugbash-65947d3a bash -lc 'cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs'
+
+<details>
+<summary>85 lines</summary>
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /repo
+configfile: pyproject.toml
+plugins: httpbin-2.1.0, cov-7.1.0, xdist-3.8.0, mock-3.15.1
+collecting ... collected 3 items
+
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] FAILED
+
+=================================== FAILURES ===================================
+__________ TestRequests.test_header_no_return_chars[invalid_header11] __________
+
+self = <tests.test_requests.TestRequests object at 0x7a8391a84c40>
+httpbin = <function prepare_url.<locals>.inner at 0x7a8391a0e3b0>
+invalid_header = {'foo': '\n'}
+
+    @pytest.mark.parametrize(
+        "invalid_header",
+        (
+            {"foo": "bar\r\nbaz: qux"},
+            {"foo": "bar\n\rbaz: qux"},
+            {"foo": "bar\nbaz: qux"},
+            {"foo": "bar\rbaz: qux"},
+            {"fo\ro": "bar"},
+            {"fo\r\no": "bar"},
+            {"fo\n\ro": "bar"},
+            {"fo\no": "bar"},
+            {"foo": "bar\n"},
+            {"foo\n": "bar"},
+            {"foo": "bar\r\n"},
+            {"foo": "\n"},
+            {"foo": "\r\n"},
+        ),
+    )
+    def test_header_no_return_chars(self, httpbin, invalid_header):
+        """Ensure that a header containing return character sequences raise an
+        exception. Otherwise, multiple headers are created from single string.
+        """
+        with pytest.raises(InvalidHeader):
+>           requests.get(httpbin("get"), headers=invalid_header)
+
+tests/test_requests.py:1814: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+src/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+src/requests/sessions.py:591: in request
+    resp = self.send(prep, **send_kwargs)
+src/requests/sessions.py:705: in send
+    r = adapter.send(request, **kwargs)
+src/requests/adapters.py:645: in send
+    resp = conn.urlopen(
+/usr/local/lib/python3.10/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/usr/local/lib/python3.10/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/usr/local/lib/python3.10/site-packages/urllib3/connection.py:499: in request
+    self.putheader(header, value)
+/usr/local/lib/python3.10/site-packages/urllib3/connection.py:413: in putheader
+    super().putheader(header, *values)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <HTTPConnection(host='127.0.0.1', port=39963) at 0x7a8390a905b0>
+header = b'foo', values = [b'\n'], i = 0, one_value = '\n'
+
+    def putheader(self, header, *values):
+        """Send a request header line to the server.
+    
+        For example: h.putheader('Accept', 'text/html')
+        """
+        if self.__state != _CS_REQ_STARTED:
+            raise CannotSendHeader()
+    
+        if hasattr(header, 'encode'):
+            header = header.encode('ascii')
+    
+        if not _is_legal_header_name(header):
+            raise ValueError('Invalid header name %r' % (header,))
+    
+        values = list(values)
+        for i, one_value in enumerate(values):
+            if hasattr(one_value, 'encode'):
+                values[i] = one_value.encode('latin-1')
+            elif isinstance(one_value, int):
+                values[i] = str(one_value).encode('ascii')
+    
+            if _is_illegal_header_value(values[i]):
+>               raise ValueError('Invalid header value %r' % (values[i],))
+E               ValueError: Invalid header value b'\n'
+
+/usr/local/lib/python3.10/http/client.py:1281: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+============================== 1 failed in 0.91s ===============================
+<exited with exit code 1>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 39s</sub>
+
+### ✅ `rg`
+
+**/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo**
+
+<details>
+<summary>Arguments</summary>
+
+```json
+{
+  "pattern": "_VALID_HEADER_(NAME|VALUE)_RE|HEADER_VALIDATORS",
+  "path": "/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo",
+  "output_mode": "content",
+  "glob": "**/*.py",
+  "-n": true,
+  "head_limit": 200
+}
+```
+
+</details>
+
+<details>
+<summary>22 lines</summary>
+
+```
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:81:        from requests._internal_utils import _VALID_HEADER_VALUE_RE_STR
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:84:        assert _VALID_HEADER_VALUE_RE_STR.match("bar\n") is None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:86:        assert _VALID_HEADER_VALUE_RE_STR.match("\n") is None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:88:        assert _VALID_HEADER_VALUE_RE_STR.match("bar") is not None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:89:        assert _VALID_HEADER_VALUE_RE_STR.match("") is not None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:94:        from requests._internal_utils import _VALID_HEADER_NAME_RE_STR
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:97:        assert _VALID_HEADER_NAME_RE_STR.match("foo\n") is None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/test_synthetic_0.py:99:        assert _VALID_HEADER_NAME_RE_STR.match("foo") is not None
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:22:_VALID_HEADER_NAME_RE_BYTE = re.compile(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:25:_VALID_HEADER_NAME_RE_STR = re.compile(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:33:_VALID_HEADER_VALUE_RE_BYTE = re.compile(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:36:_VALID_HEADER_VALUE_RE_STR = re.compile(
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:40:_HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:41:_HEADER_VALIDATORS_BYTE = (_VALID_HEADER_NAME_RE_BYTE, _VALID_HEADER_VALUE_RE_BYTE)
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:42:HEADER_VALIDATORS = {
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:43:    bytes: _HEADER_VALIDATORS_BYTE,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py:44:    str: _HEADER_VALIDATORS_STR,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:29:    _HEADER_VALIDATORS_BYTE,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:30:    _HEADER_VALIDATORS_STR,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:31:    HEADER_VALIDATORS,
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1038:        validator = _HEADER_VALIDATORS_STR[header_validator_index]
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/utils.py:1040:        validator = _HEADER_VALIDATORS_BYTE[header_validator_index]
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 39s</sub>
+
+### ✅ `view`
+
+**view the file at /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_lowlevel.py.**
+
+/tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_lowlevel.py (lines 90-140)
+
+<details>
+<summary>51 lines</summary>
+
+```
+90.         url = f"http://{host}:{port}/"
+91.         r = requests.post(url, data=data, stream=True)
+92.         close_server.set()  # release server block
+93. 
+94.     expected_header = b"Host: %s\r\n" % expected_host.encode("utf-8")
+95.     assert expected_header in r.content
+96.     assert r.content.count(b"Host: ") == 1
+97. 
+98. 
+99. def test_conflicting_content_lengths():
+100.     """Ensure we correctly throw an InvalidHeader error if multiple
+101.     conflicting Content-Length headers are returned.
+102.     """
+103. 
+104.     def multiple_content_length_response_handler(sock):
+105.         request_content = consume_socket_content(sock, timeout=0.5)
+106.         response = (
+107.             b"HTTP/1.1 200 OK\r\n"
+108.             b"Content-Type: text/plain\r\n"
+109.             b"Content-Length: 16\r\n"
+110.             b"Content-Length: 32\r\n\r\n"
+111.             b"-- Bad Actor -- Original Content\r\n"
+112.         )
+113.         sock.send(response)
+114. 
+115.         return request_content
+116. 
+117.     close_server = threading.Event()
+118.     server = Server(multiple_content_length_response_handler)
+119. 
+120.     with server as (host, port):
+121.         url = f"http://{host}:{port}/"
+122.         with pytest.raises(requests.exceptions.InvalidHeader):
+123.             requests.get(url)
+124.         close_server.set()
+125. 
+126. 
+127. def test_digestauth_401_count_reset_on_redirect():
+128.     """Ensure we correctly reset num_401_calls after a successful digest auth,
+129.     followed by a 302 redirect to another digest auth prompt.
+130. 
+131.     See https://github.com/psf/requests/issues/1979.
+132.     """
+133.     text_401 = (b'HTTP/1.1 401 UNAUTHORIZED\r\n'
+134.                 b'Content-Length: 0\r\n'
+135.                 b'WWW-Authenticate: Digest nonce="6bf5d6e4da1ce66918800195d6b9130d"'
+136.                 b', opaque="372825293d1c26955496c80ed6426e9e", '
+137.                 b'realm="me@kennethreitz.com", qop=auth\r\n\r\n')
+138. 
+139.     text_302 = (b'HTTP/1.1 302 FOUND\r\n'
+140.                 b'Content-Length: 0\r\n'
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 49s</sub>
+
+### 💬 Copilot
+
+I’ve confirmed the regression on current code. The root cause is the regex anchor behavior: Python’s `$` still matches before a final newline, so I’m adding a focused temporary regression test and then switching the validators to strict end-of-string matching.
+
+---
+
+<sub>⏱️ 49s</sub>
+
+### ✅ `apply_patch`
+
+<details>
+<summary>Arguments</summary>
+
+```json
+"*** Begin Patch\n*** Update File: /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py\n@@\n     def test_header_no_return_chars(self, httpbin, invalid_header):\n         \"\"\"Ensure that a header containing return character sequences raise an\n         exception. Otherwise, multiple headers are created from single string.\n         \"\"\"\n         with pytest.raises(InvalidHeader):\n             requests.get(httpbin(\"get\"), headers=invalid_header)\n+\n+    def test_prepare_rejects_header_value_with_trailing_newline(self):\n+        with pytest.raises(InvalidHeader):\n+            requests.Request(\n+                \"GET\", \"http://example.com\", headers={\"foo\": \"bar\\n\"}\n+            ).prepare()\n*** End Patch\n"
+```
+
+</details>
+
+```
+Modified 1 file(s): /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/tests/test_requests.py
+```
+
+
+---
+
+<sub>⏱️ 54s</sub>
+
+### ✅ `bash`
+
+**Run temporary focused regression test**
+
+$ docker exec bugbash-65947d3a bash -lc 'cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_prepare_rejects_header_value_with_trailing_newline -xvs'
+
+<details>
+<summary>20 lines</summary>
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /repo
+configfile: pyproject.toml
+plugins: httpbin-2.1.0, cov-7.1.0, xdist-3.8.0, mock-3.15.1
+collecting ... collected 1 item
+
+tests/test_requests.py::TestRequests::test_prepare_rejects_header_value_with_trailing_newline FAILED
+
+=================================== FAILURES ===================================
+_____ TestRequests.test_prepare_rejects_header_value_with_trailing_newline _____
+
+self = <tests.test_requests.TestRequests object at 0x765625d4e1a0>
+
+    def test_prepare_rejects_header_value_with_trailing_newline(self):
+>       with pytest.raises(InvalidHeader):
+E       Failed: DID NOT RAISE <class 'requests.exceptions.InvalidHeader'>
+
+tests/test_requests.py:1817: Failed
+=========================== short test summary info ============================
+FAILED tests/test_requests.py::TestRequests::test_prepare_rejects_header_value_with_trailing_newline
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+============================== 1 failed in 0.44s ===============================
+<exited with exit code 1>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 52s</sub>
+
+### ✅ `bash`
+
+**Show temporary test diff**
+
+$ git --no-pager diff -- tests/test_requests.py
+
+<details>
+<summary>17 lines</summary>
+
+```diff
+diff --git a/tests/test_requests.py b/tests/test_requests.py
+index aa41335..dfc0a78 100644
+--- a/tests/test_requests.py
++++ b/tests/test_requests.py
+@@ -1813,6 +1813,12 @@ class TestRequests:
+         with pytest.raises(InvalidHeader):
+             requests.get(httpbin("get"), headers=invalid_header)
+ 
++    def test_prepare_rejects_header_value_with_trailing_newline(self):
++        with pytest.raises(InvalidHeader):
++            requests.Request(
++                "GET", "http://example.com", headers={"foo": "bar\n"}
++            ).prepare()
++
+     @pytest.mark.parametrize(
+         "invalid_header",
+         (
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 59s</sub>
+
+### ✅ `apply_patch`
+
+<details>
+<summary>Arguments</summary>
+
+```json
+"*** Begin Patch\n*** Update File: /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py\n@@\n _VALID_HEADER_NAME_RE_BYTE = re.compile(\n-    rb\"^[\" + _RFC7230_TOKEN_CHARS.encode(\"ascii\") + rb\"]+$\"\n+    rb\"^[\" + _RFC7230_TOKEN_CHARS.encode(\"ascii\") + rb\"]+\\Z\"\n )\n _VALID_HEADER_NAME_RE_STR = re.compile(\n-    r\"^[\" + _RFC7230_TOKEN_CHARS + r\"]+$\"\n+    r\"^[\" + _RFC7230_TOKEN_CHARS + r\"]+\\Z\"\n )\n@@\n _VALID_HEADER_VALUE_RE_BYTE = re.compile(\n-    rb\"^[^\\x00-\\x20\\x7f][^\\x00-\\x08\\x0a-\\x1f\\x7f]*$|^$\"\n+    rb\"^[^\\x00-\\x20\\x7f][^\\x00-\\x08\\x0a-\\x1f\\x7f]*\\Z|^\\Z\"\n )\n _VALID_HEADER_VALUE_RE_STR = re.compile(\n-    r\"^[^\\x00-\\x20\\x7f][^\\x00-\\x08\\x0a-\\x1f\\x7f]*$|^$\"\n+    r\"^[^\\x00-\\x20\\x7f][^\\x00-\\x08\\x0a-\\x1f\\x7f]*\\Z|^\\Z\"\n )\n*** End Patch\n"
+```
+
+</details>
+
+```
+Modified 1 file(s): /tmp/bugbash_feature-add-54199845_gpt-5.4_lizwi7u8/repo/src/requests/_internal_utils.py
+```
+
+
+---
+
+<sub>⏱️ 1m 4s</sub>
+
+### 💬 Copilot
+
+The fix is in: the validators now use true end-of-string anchors, which closes the trailing-newline hole for both names and values. I’m rerunning the focused reproducer and the reported edge cases before removing the temporary test.
+
+---
+
+<sub>⏱️ 1m 6s</sub>
+
+### ✅ `bash`
+
+**Run focused and reported header tests**
+
+$ docker exec bugbash-65947d3a bash -lc 'cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_prepare_rejects_header_value_with_trailing_newline tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs'
+
+<details>
+<summary>13 lines</summary>
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /repo
+configfile: pyproject.toml
+plugins: httpbin-2.1.0, cov-7.1.0, xdist-3.8.0, mock-3.15.1
+collecting ... collected 4 items
+
+tests/test_requests.py::TestRequests::test_prepare_rejects_header_value_with_trailing_newline PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] PASSED
+
+============================== 4 passed in 0.56s ===============================
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 5s</sub>
+
+### ✅ `bash`
+
+**Show validator fix diff**
+
+$ git --no-pager diff -- src/requests/_internal_utils.py
+
+<details>
+<summary>29 lines</summary>
+
+```diff
+diff --git a/src/requests/_internal_utils.py b/src/requests/_internal_utils.py
+index 38609e8..2aca937 100644
+--- a/src/requests/_internal_utils.py
++++ b/src/requests/_internal_utils.py
+@@ -20,10 +20,10 @@ _RFC7230_TOKEN_CHARS = r"!#$%&'*+\-.^_`|~0-9A-Za-z"
+ # This rejects non-token characters (e.g., control chars, spaces, colons)
+ # that were previously loosely accepted.
+ _VALID_HEADER_NAME_RE_BYTE = re.compile(
+-    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+$"
++    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+\Z"
+ )
+ _VALID_HEADER_NAME_RE_STR = re.compile(
+-    r"^[" + _RFC7230_TOKEN_CHARS + r"]+$"
++    r"^[" + _RFC7230_TOKEN_CHARS + r"]+\Z"
+ )
+ 
+ # Header value validation: reject ASCII control characters (0x00-0x08,
+@@ -31,10 +31,10 @@ _VALID_HEADER_NAME_RE_STR = re.compile(
+ # The first character must also be a visible (non-whitespace) character.
+ # Tab (0x09) is permitted within the value per RFC 7230 obs-text.
+ _VALID_HEADER_VALUE_RE_BYTE = re.compile(
+-    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ _VALID_HEADER_VALUE_RE_STR = re.compile(
+-    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ 
+ _HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 14s</sub>
+
+### 💬 Copilot
+
+The temporary reproducer did its job, so I’m removing it now and rerunning the requested validation command against the clean test tree.
+
+---
+
+<sub>⏱️ 1m 16s</sub>
+
+### ✅ `bash`
+
+**Revert temp test and rerun requested tests**
+
+$ git checkout -- tests/test_requests.py && docker exec bugbash-65947d3a bash -lc 'cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs'
+
+<details>
+<summary>12 lines</summary>
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /repo
+configfile: pyproject.toml
+plugins: httpbin-2.1.0, cov-7.1.0, xdist-3.8.0, mock-3.15.1
+collecting ... collected 3 items
+
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] PASSED
+
+============================== 3 passed in 0.83s ===============================
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 14s</sub>
+
+### ✅ `bash`
+
+**Check remaining diff after test revert**
+
+$ git --no-pager diff -- tests/test_requests.py src/requests/_internal_utils.py
+
+<details>
+<summary>45 lines</summary>
+
+```diff
+diff --git a/src/requests/_internal_utils.py b/src/requests/_internal_utils.py
+index 38609e8..2aca937 100644
+--- a/src/requests/_internal_utils.py
++++ b/src/requests/_internal_utils.py
+@@ -20,10 +20,10 @@ _RFC7230_TOKEN_CHARS = r"!#$%&'*+\-.^_`|~0-9A-Za-z"
+ # This rejects non-token characters (e.g., control chars, spaces, colons)
+ # that were previously loosely accepted.
+ _VALID_HEADER_NAME_RE_BYTE = re.compile(
+-    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+$"
++    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+\Z"
+ )
+ _VALID_HEADER_NAME_RE_STR = re.compile(
+-    r"^[" + _RFC7230_TOKEN_CHARS + r"]+$"
++    r"^[" + _RFC7230_TOKEN_CHARS + r"]+\Z"
+ )
+ 
+ # Header value validation: reject ASCII control characters (0x00-0x08,
+@@ -31,10 +31,10 @@ _VALID_HEADER_NAME_RE_STR = re.compile(
+ # The first character must also be a visible (non-whitespace) character.
+ # Tab (0x09) is permitted within the value per RFC 7230 obs-text.
+ _VALID_HEADER_VALUE_RE_BYTE = re.compile(
+-    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ _VALID_HEADER_VALUE_RE_STR = re.compile(
+-    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ 
+ _HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+diff --git a/tests/test_requests.py b/tests/test_requests.py
+index aa41335..dfc0a78 100644
+--- a/tests/test_requests.py
++++ b/tests/test_requests.py
+@@ -1813,6 +1813,12 @@ class TestRequests:
+         with pytest.raises(InvalidHeader):
+             requests.get(httpbin("get"), headers=invalid_header)
+ 
++    def test_prepare_rejects_header_value_with_trailing_newline(self):
++        with pytest.raises(InvalidHeader):
++            requests.Request(
++                "GET", "http://example.com", headers={"foo": "bar\n"}
++            ).prepare()
++
+     @pytest.mark.parametrize(
+         "invalid_header",
+         (
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 21s</sub>
+
+### 💬 Copilot
+
+I hit a race between the revert and the diff readout, so I’m doing one final clean status pass and then printing the final patch only from the bug fix file.
+
+---
+
+<sub>⏱️ 1m 21s</sub>
+
+### ✅ `bash`
+
+**Ensure tests reverted and show final patch**
+
+$ git checkout -- tests/test_requests.py && git --no-pager status --short && echo '---DIFF---' && git --no-pager diff
+
+<details>
+<summary>32 lines</summary>
+
+```diff
+M src/requests/_internal_utils.py
+?? final_prompt.txt
+---DIFF---
+diff --git a/src/requests/_internal_utils.py b/src/requests/_internal_utils.py
+index 38609e8..2aca937 100644
+--- a/src/requests/_internal_utils.py
++++ b/src/requests/_internal_utils.py
+@@ -20,10 +20,10 @@ _RFC7230_TOKEN_CHARS = r"!#$%&'*+\-.^_`|~0-9A-Za-z"
+ # This rejects non-token characters (e.g., control chars, spaces, colons)
+ # that were previously loosely accepted.
+ _VALID_HEADER_NAME_RE_BYTE = re.compile(
+-    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+$"
++    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+\Z"
+ )
+ _VALID_HEADER_NAME_RE_STR = re.compile(
+-    r"^[" + _RFC7230_TOKEN_CHARS + r"]+$"
++    r"^[" + _RFC7230_TOKEN_CHARS + r"]+\Z"
+ )
+ 
+ # Header value validation: reject ASCII control characters (0x00-0x08,
+@@ -31,10 +31,10 @@ _VALID_HEADER_NAME_RE_STR = re.compile(
+ # The first character must also be a visible (non-whitespace) character.
+ # Tab (0x09) is permitted within the value per RFC 7230 obs-text.
+ _VALID_HEADER_VALUE_RE_BYTE = re.compile(
+-    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ _VALID_HEADER_VALUE_RE_STR = re.compile(
+-    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
++    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
+ )
+ 
+ _HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 22s</sub>
+
+### ✅ `bash`
+
+**Run full return-char header test set**
+
+$ docker exec bugbash-65947d3a bash -lc 'cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars -xvs'
+
+<details>
+<summary>22 lines</summary>
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /repo
+configfile: pyproject.toml
+plugins: httpbin-2.1.0, cov-7.1.0, xdist-3.8.0, mock-3.15.1
+collecting ... collected 13 items
+
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header0] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header1] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header2] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header3] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header4] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header5] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header6] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header7] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header10] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] PASSED
+tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header12] PASSED
+
+============================== 13 passed in 0.56s ==============================
+<exited with exit code 0>
+```
+
+</details>
+
+
+---
+
+<sub>⏱️ 1m 27s</sub>
+
+### 💬 Copilot
+
+Fixed the regression in `src/requests/_internal_utils.py` by changing the header name and value validator regexes to use `\Z` instead of `$`. That restores strict end-of-string matching, so trailing newlines like `"bar\n"`, `"\n"`, and `"foo\n"` are rejected as `InvalidHeader` again instead of slipping through to `http.client`.
+
+The final patch is only the validator change; the temporary verification test was removed.
+
+---
+
+<sub>Generated by [GitHub Copilot CLI](https://github.com/features/copilot/cli)</sub>
