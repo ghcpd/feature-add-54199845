@@ -20,10 +20,10 @@ _RFC7230_TOKEN_CHARS = r"!#$%&'*+\-.^_`|~0-9A-Za-z"
 # This rejects non-token characters (e.g., control chars, spaces, colons)
 # that were previously loosely accepted.
 _VALID_HEADER_NAME_RE_BYTE = re.compile(
-    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+$"
+    rb"^[" + _RFC7230_TOKEN_CHARS.encode("ascii") + rb"]+\Z"
 )
 _VALID_HEADER_NAME_RE_STR = re.compile(
-    r"^[" + _RFC7230_TOKEN_CHARS + r"]+$"
+    r"^[" + _RFC7230_TOKEN_CHARS + r"]+\Z"
 )
 
 # Header value validation: reject ASCII control characters (0x00-0x08,
@@ -31,10 +31,10 @@ _VALID_HEADER_NAME_RE_STR = re.compile(
 # The first character must also be a visible (non-whitespace) character.
 # Tab (0x09) is permitted within the value per RFC 7230 obs-text.
 _VALID_HEADER_VALUE_RE_BYTE = re.compile(
-    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
+    rb"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
 )
 _VALID_HEADER_VALUE_RE_STR = re.compile(
-    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*$|^$"
+    r"^[^\x00-\x20\x7f][^\x00-\x08\x0a-\x1f\x7f]*\Z|^\Z"
 )
 
 _HEADER_VALIDATORS_STR = (_VALID_HEADER_NAME_RE_STR, _VALID_HEADER_VALUE_RE_STR)

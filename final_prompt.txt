@@ -1,0 +1,73 @@
+You are an expert software engineer working in a repository to fix a reported issue.
+
+Your task is to read the issue description, inspect the relevant code and tests, and implement the smallest correct patch.
+
+## Repository
+- Repo: psf/requests
+- Local repo: /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo  (read & edit files here)
+- Docker container: bugbash-a8c916b2  (test here, repo mounted at /repo)
+
+## Problem Statement
+## Header values ending with a newline no longer raise InvalidHeader
+
+After upgrading to the latest version of requests, I'm seeing a strange behavior with header validation. Previously, if I accidentally included a trailing newline character in a header value (like `"bar\n"`), the library would immediately raise an `InvalidHeader` exception, preventing the bad header from ever being sent. Now it seems to silently accept it and tries to send the request anyway, which then blows up deeper in the stack with a `ValueError: Invalid header value` from what looks like Python's own HTTP internals.
+
+The same thing happens if I set a header value to just `"\n"` — it used to be caught right away, but now it slips through.
+
+I also noticed that header names with a trailing newline (like `"foo\n"`) are no longer caught either.
+
+This is a security concern for me because my application constructs headers from user input (after sanitization), and I was relying on requests to be the last line of defense against header injection. The fact that bare newlines at the end of values are no longer rejected feels like a regression.
+
+Here's a minimal example:
+
+```python
+import requests
+from requests.exceptions import InvalidHeader
+
+try:
+    r = requests.Request('GET', 'http://example.com', headers={'foo': 'bar\n'}).prepare()
+    print('BUG: no exception raised!')
+except InvalidHeader:
+    print('OK: correctly rejected')
+```
+
+On the previous version, this prints "OK: correctly rejected". On the current version, it prints "BUG: no exception raised!" (and if you actually send the request, you get a ValueError from somewhere deep in the HTTP stack).
+
+My environment:
+- Python 3.10
+- requests latest from main branch
+- Ubuntu 22.04
+
+Maybe the validation regex was changed recently? I'm not sure what could cause newlines at the very end to be treated differently from newlines in the middle of a value (those are still correctly rejected).
+
+## Setup (if needed)
+```bash
+docker exec bugbash-a8c916b2 bash -c "cd /repo && pip install -e '.[socks]' && pip install pytest pytest-httpbin trustme"
+```
+
+## Testing
+Files are bind-mounted — edits in /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo are immediately visible
+in the container. No sync step is needed.
+```bash
+docker exec bugbash-a8c916b2 bash -c "cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs"
+```
+
+## Workflow
+1. **Explore**: Read and explore the local repo at /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo.
+2. **Root Cause**: Analyze the problem statement to identify the root cause.
+3. **Write a Verification Test**: Write a small focused test that reproduces the bug.
+   - The test should FAIL on the current code and PASS after your fix.
+   - Run the test to confirm it fails.
+4. **Fix the Bug**: Edit the necessary files in /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo.
+5. **Validate**: Run tests to confirm your fix works and nothing else breaks:
+   docker exec bugbash-a8c916b2 bash -c "cd /repo && python3 -m pytest tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header11] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header8] tests/test_requests.py::TestRequests::test_header_no_return_chars[invalid_header9] -xvs"
+6. **Iterate** until all tests pass.
+7. **Remove Your Verification Test**: Revert ALL test changes.
+   Use `git checkout -- <test_file>` in /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo to revert each test file.
+8. **Final Patch**: Run `cd /tmp/bugbash_feature-add-54199845_claude-opus-4.6_c9qi57tx/repo && git diff` to output the final patch
+   (bug fix only, no test additions).
+
+IMPORTANT:
+- Only modify files necessary to fix the bug.
+- The verification test is for development only — remove it before the final patch.
+- Ensure ALL existing tests still pass.
